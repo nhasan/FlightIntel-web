@@ -1,0 +1,90 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    env_file:
+      - ./postgres/postgres.env
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+      # copy the sql script to create tables
+      - ./postgres/initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - flightintel-net
+
+  fnsclient:
+    image: pr0t0n/fns-client-flightintel
+    container_name: fnsclient
+    hostname: fnsclient
+    restart: always
+    volumes:
+      - ./fns-client/fnsClient.conf:/app/fnsClient.conf:ro
+      - ./fns-client/FIL2_NHASAN_NADMM_COM:/app/FIL2_NHASAN_NADMM_COM:ro
+      - ./fns-client/log4j.properties:/app/log4j.properties:ro
+      - ./fns-client/logs:/app/logs
+      - ./fns-client/tmp:/app/tmp
+    depends_on:
+      - postgres
+    networks:
+      - flightintel-net
+
+  tdesclient:
+    image: pr0t0n/tdes-client-flightintel
+    container_name: tdesclient
+    hostname: tdesclient
+    restart: always
+    volumes:
+      - ./tdes-client/tdesClient.conf:/app/tdesClient.conf
+      - ./tdes-client/log4j.properties:/app/log4j.properties:ro
+      - ./tdes-client/logs:/app/logs
+    depends_on:
+      - postgres
+    networks:
+      - flightintel-net
+
+  swag:
+    image: lscr.io/linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Americas/New_York
+      - URL=flightintel.com
+      - SUBDOMAINS=wildcard
+      - VALIDATION=dns
+      - DNSPLUGIN=cloudflare
+    volumes:
+      - ./swag:/config
+    ports:
+      - 443:443
+      - 80:80
+    restart: unless-stopped
+    networks:
+      - flightintel-net
+
+  scds-api:
+    image: pr0t0n/flightintel-api:0.1
+    container_name: flightintel-api
+    restart: always
+    volumes:
+      - ./flightintel-api:/app/config
+    depends_on:
+      - swag
+      - postgres
+    networks:
+      - flightintel-net
+
+networks:
+  flightintel-net:
+    external: true
+
