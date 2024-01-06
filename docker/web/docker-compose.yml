@@ -24,12 +24,11 @@ services:
       - flightintel-net
 
   scds-api:
-    image: pr0t0n/scds-api:1.1
-    container_name: scds-api
-    hostname: scds-api
+    image: pr0t0n/flightintel-api:0.1
+    container_name: flightintel-api
     restart: always
     volumes:
-      - ./scds-api:/app/config
+      - ./flightintel-api:/app/config
     depends_on:
       - swag
     networks:
@@ -38,3 +37,4 @@ services:
 networks:
   flightintel-net:
     external: true
+
