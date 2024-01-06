@@ -1,0 +1,40 @@
+version: "3.7"
+
+services:
+  swag:
+    image: lscr.io/linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Americas/New_York
+      - URL=flightintel.com
+      - SUBDOMAINS=wildcard
+      - VALIDATION=dns
+      - DNSPLUGIN=cloudflare
+    volumes:
+      - ./swag:/config
+    ports:
+      - 443:443
+      - 80:80
+    restart: unless-stopped
+    networks:
+      - flightintel-net
+
+  scds-api:
+    image: pr0t0n/scds-api:1.1
+    container_name: scds-api
+    hostname: scds-api
+    restart: always
+    volumes:
+      - ./scds-api:/app/config
+    depends_on:
+      - swag
+    networks:
+      - flightintel-net
+
+networks:
+  flightintel-net:
+    external: true
