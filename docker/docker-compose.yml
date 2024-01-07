@@ -20,10 +20,9 @@ services:
     networks:
       - flightintel-net
 
-  fnsclient:
+  notams:
     image: pr0t0n/fns-client-flightintel
-    container_name: fnsclient
-    hostname: fnsclient
+    container_name: notams
     restart: always
     volumes:
       - ./fns-client/fnsClient.conf:/app/fnsClient.conf:ro
@@ -36,10 +35,9 @@ services:
     networks:
       - flightintel-net
 
-  tdesclient:
+  atis:
     image: pr0t0n/tdes-client-flightintel
-    container_name: tdesclient
-    hostname: tdesclient
+    container_name: atis
     restart: always
     volumes:
       - ./tdes-client/tdesClient.conf:/app/tdesClient.conf
@@ -72,8 +70,8 @@ services:
     networks:
       - flightintel-net
 
-  scds-api:
-    image: pr0t0n/flightintel-api:0.1
+  flightintel-api:
+    image: pr0t0n/flightintel-api
     container_name: flightintel-api
     restart: always
     volumes:
